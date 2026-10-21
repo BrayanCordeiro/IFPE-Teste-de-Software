@@ -1,0 +1,72 @@
+name: API E-commerce CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Fase 1: Segurança e Build
+  sast:
+    name: Security Scan (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: echo "Executando análise estática..."
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: echo "Compilando..."
+
+  # Fase 2: Qualidade e Unidade (Depende de SAST e Build)
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [build, sast] # Fail Fast
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm test
+
+  lint-quality:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    needs: [build, sast] # Fail Fast
+    steps:
+      - uses: actions/checkout@v5
+      - run: echo "Executando Linter..."
+
+  # Fase 3: Testes de API (Depende de test e lint-quality)
+  api-tests:
+    name: API E2E Tests
+    runs-on: ubuntu-latest
+    needs: [test, lint-quality] # Fail Fast: só roda se a Fase 2 passar!
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      
+      # 1. Instala as dependências necessárias para rodar a API e os testes
+      - name: Install dependencies
+        run: npm ci
+
+      # 2. Inicia a API em segundo plano (&) para não travar o terminal
+      - name: Start API Server
+        run: npm start & 
+
+      # 3. Executa o seu script que aguarda a API ficar pronta e roda os testes
+      - name: Run API Tests
+        run: bash scripts/api-tests.sh # Executa o script de testes da API
