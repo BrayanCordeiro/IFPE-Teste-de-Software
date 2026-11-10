@@ -1,25 +1,27 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const orderSchema = new mongoose.Schema({
-  orderId: { 
-    type: String, 
-    required: true, 
-    unique: true 
+const Order = sequelize.define('Order', {
+  orderId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
   },
-  items: { 
-    type: Array, 
-    required: true 
+  items: {
+    type: DataTypes.JSONB,
+    allowNull: false
   },
-  method: { 
-    type: String, 
-    required: true 
+  method: {
+    type: DataTypes.STRING,
+    allowNull: false
   },
   status: {
-    type: String,
-    default: 'Processando' // Status inicial do pedido
-  },
-  //vincula o pedido a um usuário logado
-  // user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-}, { timestamps: true });
+    type: DataTypes.STRING,
+    defaultValue: 'Processando'
+  }
+}, {
+  tableName: 'orders',
+  timestamps: true 
+});
 
-module.exports = mongoose.model('Order', orderSchema);
+module.exports = Order;

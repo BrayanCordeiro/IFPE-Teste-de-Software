@@ -32,21 +32,29 @@ router.post('/checkout', async (req, res) => {
 
 router.get('/orders', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 }); 
+    const orders = await Order.findAll({
+      order: [['createdAt', 'DESC']]
+    });
+    
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar pedidos' });
+    res.status(500).json({ error: 'Erro ao buscar pedidos', details: error.message });
   }
 });
 
 router.get('/orders/:orderId', async (req, res) => {
   try {
-    const order = await Order.findOne({ orderId: req.params.orderId });
-    if (!order) return res.status(404).json({ error: 'Pedido não encontrado' });
+    const order = await Order.findOne({ 
+      where: { orderId: req.params.orderId } 
+    });
+    
+    if (!order) {
+      return res.status(404).json({ error: 'Pedido não encontrado' });
+    }
     
     res.json(order);
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao buscar o pedido' });
+    res.status(500).json({ error: 'Erro ao buscar o pedido', details: error.message });
   }
 });
 

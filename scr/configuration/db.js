@@ -1,13 +1,17 @@
-const mongoose = require('mongoose');
+const { Sequelize } = require('sequelize');
+
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  logging: false, 
+});
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI);
-    console.log(`MongoDB Conectado: ${conn.connection.host}`);
+    await sequelize.authenticate();
+    console.log('PostgreSQL Conectado via Sequelize!');
   } catch (error) {
-    console.error(`Erro: ${error.message}`);
-    process.exit(1);
+    console.error('Erro ao conectar ao banco:', error);
   }
 };
 
-module.exports = connectDB;
+module.exports = { sequelize, connectDB };
