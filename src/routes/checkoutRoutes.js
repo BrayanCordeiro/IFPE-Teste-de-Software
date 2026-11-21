@@ -6,8 +6,12 @@ router.post('/checkout', async (req, res) => {
   try {
     const { cart, method } = req.body;
     
-    if (!cart || cart.length === 0) {
+    if (!cart || !Array.isArray(cart) || cart.length === 0) {
       return res.status(400).json({ error: 'O carrinho está vazio' });
+    }
+
+    if (!method || typeof method !== 'string' || method.trim() === '') {
+      return res.status(400).json({ error: 'O método de pagamento é obrigatório' });
     }
 
     const orderId = 'NX-' + Math.floor(Math.random() * 1000000);
@@ -15,7 +19,7 @@ router.post('/checkout', async (req, res) => {
     const newOrder = await Order.create({
       orderId,
       items: cart,
-      method
+      method: method.trim()
     });
 
     res.status(201).json({

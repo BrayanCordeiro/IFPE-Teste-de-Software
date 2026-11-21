@@ -1,8 +1,9 @@
 module.exports = [
   {
-    ignores: ["node_modules/**"]
+    ignores: ["node_modules/**", "coverage/**"]
   },
   {
+    files: ["**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "commonjs",
@@ -15,8 +16,24 @@ module.exports = [
       }
     },
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars":  ["warn", { "argsIgnorePattern": "^_" }],
       "no-console": "off"
+    }
+  },
+  {
+    files: ["src/tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        beforeAll: "readonly",
+        afterAll: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        jest: "readonly"
+      }
     }
   }
 ];
