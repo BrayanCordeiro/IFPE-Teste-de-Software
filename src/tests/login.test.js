@@ -4,7 +4,7 @@ const app = require('../app');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-describe('Autenticação de usuario', () => {
+describe('Autenticação de usuário (/api/login)', () => {
   beforeAll(async () => {
     await sequelize.sync({ force: true });
   });
@@ -16,7 +16,7 @@ describe('Autenticação de usuario', () => {
     await User.create({
       name: 'usuarioauth',
       email: 'usuarioauth@email.com',
-      password: passHash
+      password: passHash,
     });
   });
 
@@ -28,12 +28,25 @@ describe('Autenticação de usuario', () => {
     await sequelize.close();
   });
 
-  it('[CT-FUN-03] – Deve autenticar usuario com login e senha valida', async () => {
+  it('[CT-FUN-04] – Deve rejeitar autenticação com e-mail não cadastrado', async () => {
+    const response = await request(app)
+      .post('/api/login')
+      .send({
+        email: 'inexistente@email.com',
+        password: 'Senha123',
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toBe('Credenciais inválidas');
+  });
+
+  it('[CT-FUN-05] – Deve autenticar usuário com login e senha válida', async () => {
     const response = await request(app)
       .post('/api/login')
       .send({
         email: 'usuarioauth@email.com',
-        password: 'Senha123'
+        password: 'Senha123',
       });
 
     expect(response.status).toBe(200);
@@ -45,12 +58,12 @@ describe('Autenticação de usuario', () => {
     expect(response.body.user).not.toHaveProperty('password');
   });
 
-  it('[CT-FUN-05] – Deve rejeitar autenticacao com senha invalida', async () => {
+  it('[CT-FUN-06] – Deve rejeitar autenticação com senha inválida', async () => {
     const response = await request(app)
       .post('/api/login')
       .send({
         email: 'usuarioauth@email.com',
-        password: 'wrong-pass-123'
+        password: 'wrong-pass-123',
       });
 
     expect(response.status).toBe(401);

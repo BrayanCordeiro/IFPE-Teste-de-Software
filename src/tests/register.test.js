@@ -3,13 +3,15 @@ const app = require('../app');
 const { sequelize } = require('../config/db');
 const User = require('../models/User');
 
-describe('Entidade usuário e suas respectivas chamadas',() => {
+describe('Entidade usuário e cadastro (/api/register)', () => {
   beforeAll(async () => {
     await sequelize.sync({ force: true });
   });
+
   afterEach(async () => {
     await User.destroy({ where: {} });
   });
+
   afterAll(async () => {
     await sequelize.close();
   });
@@ -20,7 +22,7 @@ describe('Entidade usuário e suas respectivas chamadas',() => {
       .send({
         name: 'usuario',
         email: 'usuario@email.com',
-        password: 'Senha123'
+        password: 'Senha123',
       });
 
     expect(response.status).toBe(201);
@@ -33,17 +35,37 @@ describe('Entidade usuário e suas respectivas chamadas',() => {
     expect(response.body.user).not.toHaveProperty('hashedPassword');
   });
 
-  it('[CT-FUN-02] – Deve rejeitar o cadastro de usuário com dados inválidos', async () => {
+  it('[CT-FUN-02] – Deve rejeitar o cadastro de usuário com dados nulos ou ausentes', async () => {
     const response = await request(app)
       .post('/api/register')
       .send({
         name: null,
         email: null,
-        password: null
+        password: null,
       });
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty('error');
     expect(response.body.error).toBe('Todos os campos são obrigatórios');
+  });
+
+  it('[CT-FUN-03] – Deve rejeitar cadastro com e-mail já existente', async () => {
+    await User.create({
+      name: 'Primeiro Usuario',
+      email: 'duplicado@email.com',
+      password: 'hashedpassword123',
+    });
+
+    const response = await request(app)
+      .post('/api/register')
+      .send({
+        name: 'Segundo Usuario',
+        email: 'duplicado@email.com',
+        password: 'Senha123',
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty('error');
+    expect(response.body.error).toBe('E-mail já cadastrado');
   });
 });
