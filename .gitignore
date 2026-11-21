@@ -32,6 +32,7 @@ out/
 .nuxt/
 .output/
 *.tsbuildinfo
+*.sqlite
 
 # Cobertura de testes
 coverage/
